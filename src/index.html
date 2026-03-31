@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="/styles.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Household MD</title>
+    <script type="module" src="/main.js"></script>
+  </head>
+  <body>
+    <!-- Top bar -->
+    <div id="toolbar">
+      <span id="filename">Household MD</span><span id="change-dot"></span>
+      <div id="toolbar-actions">
+        <button id="btn-theme" title="Toggle Light/Dark">Light</button>
+        <button id="btn-toggle" title="Toggle Edit/Read (Ctrl+E)">Edit</button>
+        <div class="toolbar-sep"></div>
+        <div id="window-controls">
+          <button id="btn-minimize" title="Minimize">&#x2013;</button>
+          <button id="btn-maximize" title="Maximize">&#x25A1;</button>
+          <button id="btn-close" title="Close">&#x2715;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit toolbar -->
+    <div id="edit-toolbar" class="hidden">
+      <div id="file-actions">
+        <button data-action="new" title="New (Ctrl+N)">New</button>
+        <button data-action="open" title="Open (Ctrl+O)">Open</button>
+        <button data-action="save" title="Save (Ctrl+S)">Save</button>
+        <button data-action="save-as" title="Save As (Ctrl+Shift+S)">Save As</button>
+      </div>
+      <div class="toolbar-sep"></div>
+      <div id="md-actions">
+        <button data-md="h1" title="Heading 1">H1</button>
+        <button data-md="h2" title="Heading 2">H2</button>
+        <button data-md="h3" title="Heading 3">H3</button>
+        <div class="toolbar-sep"></div>
+        <button data-md="bold" title="Bold (Ctrl+B)"><b>B</b></button>
+        <button data-md="italic" title="Italic (Ctrl+I)"><i>I</i></button>
+        <button data-md="strikethrough" title="Strikethrough"><s>S</s></button>
+        <div class="toolbar-sep"></div>
+        <button data-md="code" title="Inline Code">Code</button>
+        <button data-md="codeblock" title="Code Block">Block</button>
+        <button data-md="quote" title="Blockquote">Quote</button>
+        <div class="toolbar-sep"></div>
+        <button data-md="ul" title="Bullet List">List</button>
+        <button data-md="ol" title="Numbered List">1. List</button>
+        <button data-md="task" title="Task List">Task</button>
+        <div class="toolbar-sep"></div>
+        <button data-md="link" title="Link">Link</button>
+        <button data-md="image" title="Image">Img</button>
+        <button data-md="table" title="Table">Table</button>
+        <button data-md="hr" title="Horizontal Rule">HR</button>
+      </div>
+    </div>
+
+    <!-- Read mode: rendered markdown -->
+    <div id="reader" class="hidden">
+      <div id="reader-content"></div>
+    </div>
+
+    <!-- Edit mode: split view -->
+    <div id="editor" class="hidden">
+      <div id="editor-pane">
+        <textarea id="editor-textarea" placeholder="Start writing markdown..." spellcheck="false"></textarea>
+      </div>
+      <div id="editor-divider"></div>
+      <div id="editor-preview">
+        <div id="preview-content"></div>
+      </div>
+    </div>
+  </body>
+</html>
