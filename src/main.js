@@ -3,6 +3,7 @@ import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { save, open } from "@tauri-apps/plugin-dialog";
 import { marked } from "marked";
+import DOMPurify from "dompurify";
 import hljs from "highlight.js/lib/core";
 // hljs themes loaded as CSS text for dynamic switching
 import hljsDark from "highlight.js/styles/github-dark-dimmed.css?inline";
@@ -72,6 +73,11 @@ marked.setOptions({
   renderer,
 });
 
+// Sanitized markdown render
+function renderMarkdown(md) {
+  return DOMPurify.sanitize(marked.parse(md));
+}
+
 // Theme setup
 const hljsStyleEl = document.createElement("style");
 document.head.appendChild(hljsStyleEl);
@@ -129,7 +135,7 @@ listen("file-changed", async () => {
     const content = await invoke("read_file", { path: currentFilePath });
     textarea.value = content;
     if (currentMode === "read") {
-      readerContent.innerHTML = marked.parse(content);
+      readerContent.innerHTML = renderMarkdown(content);
     } else {
       updatePreview();
     }
@@ -157,7 +163,7 @@ function setMode(mode) {
   currentMode = mode;
 
   if (mode === "read") {
-    readerContent.innerHTML = marked.parse(textarea.value);
+    readerContent.innerHTML = renderMarkdown(textarea.value);
     reader.classList.remove("hidden");
     editor.classList.add("hidden");
     editToolbar.classList.add("hidden");
@@ -263,11 +269,19 @@ function insertMd(before, after = "", placeholder = "") {
 
 function insertLinePrefix(prefix) {
   const start = textarea.selectionStart;
-  // Find the beginning of the current line
-  const lineStart = textarea.value.lastIndexOf("\n", start - 1) + 1;
-  textarea.value =
-    textarea.value.substring(0, lineStart) + prefix + textarea.value.substring(lineStart);
-  textarea.selectionStart = textarea.selectionEnd = start + prefix.length;
+  const end = textarea.selectionEnd;
+  const val = textarea.value;
+
+  // Find the start of the first selected line
+  const lineStart = val.lastIndexOf("\n", start - 1) + 1;
+  // Get the selected block of lines
+  const block = val.substring(lineStart, end);
+  // Prefix each line
+  const prefixed = block.split("\n").map((line) => prefix + line).join("\n");
+
+  textarea.value = val.substring(0, lineStart) + prefixed + val.substring(end);
+  textarea.selectionStart = lineStart;
+  textarea.selectionEnd = lineStart + prefixed.length;
   textarea.focus();
   isDirty = true;
   updateTitle();
@@ -300,7 +314,7 @@ btnToggle.addEventListener("click", () => {
 
 btnTheme.addEventListener("click", () => {
   applyTheme(!isDarkTheme);
-  if (currentMode === "read") readerContent.innerHTML = marked.parse(textarea.value);
+  if (currentMode === "read") readerContent.innerHTML = renderMarkdown(textarea.value);
   else updatePreview();
 });
 
@@ -310,7 +324,13 @@ document.getElementById("btn-minimize").addEventListener("click", () => appWindo
 document.getElementById("btn-maximize").addEventListener("click", async () => {
   (await appWindow.isMaximized()) ? appWindow.unmaximize() : appWindow.maximize();
 });
-document.getElementById("btn-close").addEventListener("click", () => appWindow.close());
+document.getElementById("btn-close").addEventListener("click", async () => {
+  if (isDirty) {
+    const shouldClose = window.confirm("You have unsaved changes. Close anyway?");
+    if (!shouldClose) return;
+  }
+  appWindow.close();
+});
 
 // Window dragging — use Tauri's startDragging API for cross-platform support
 // This works reliably on macOS where -webkit-app-region: drag can fail
@@ -323,13 +343,19 @@ document.getElementById("toolbar").addEventListener("mousedown", (e) => {
 });
 
 function updatePreview() {
-  previewContent.innerHTML = marked.parse(textarea.value);
+  previewContent.innerHTML = renderMarkdown(textarea.value);
+}
+
+let previewTimer = null;
+function schedulePreview() {
+  if (previewTimer) clearTimeout(previewTimer);
+  previewTimer = setTimeout(updatePreview, 150);
 }
 
 textarea.addEventListener("input", () => {
   isDirty = true;
   updateTitle();
-  updatePreview();
+  schedulePreview();
 });
 
 // File action buttons
