@@ -312,6 +312,16 @@ document.getElementById("btn-maximize").addEventListener("click", async () => {
 });
 document.getElementById("btn-close").addEventListener("click", () => appWindow.close());
 
+// Window dragging — use Tauri's startDragging API for cross-platform support
+// This works reliably on macOS where -webkit-app-region: drag can fail
+document.getElementById("toolbar").addEventListener("mousedown", (e) => {
+  // Only drag on the toolbar itself, not on buttons or interactive elements
+  if (e.target.closest("button, input, select, a, #toolbar-actions")) return;
+  if (e.buttons === 1) {
+    appWindow.startDragging();
+  }
+});
+
 function updatePreview() {
   previewContent.innerHTML = marked.parse(textarea.value);
 }
