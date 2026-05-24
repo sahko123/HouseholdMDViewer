@@ -182,10 +182,13 @@ function updateTitle() {
   if (currentFilePath) {
     const name = currentFilePath.split(/[/\\]/).pop();
     filename.textContent = (isDirty ? "\u25cf " : "") + name;
-    document.title = name + " \u2014 Household MD";
+    const title = name + " \u2014 Household MD";
+    document.title = title;
+    appWindow.setTitle(title);
   } else {
     filename.textContent = (isDirty ? "\u25cf " : "") + "Untitled";
     document.title = "Household MD";
+    appWindow.setTitle("Household MD");
   }
 }
 
