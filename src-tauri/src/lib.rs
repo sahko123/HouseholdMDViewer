@@ -3,6 +3,17 @@ use std::path::PathBuf;
 use tauri::{Emitter, State};
 use notify::{Watcher, RecursiveMode, Event, EventKind};
 
+// Register the "New > Markdown Document" shell context menu entry (Windows-only, HKCU — no admin required).
+#[cfg(windows)]
+fn register_shell_new() {
+    use winreg::enums::*;
+    use winreg::RegKey;
+    let hkcu = RegKey::predef(HKEY_CURRENT_USER);
+    if let Ok((key, _)) = hkcu.create_subkey(r"Software\Classes\.md\ShellNew") {
+        let _ = key.set_value("NullFile", &"");
+    }
+}
+
 struct OpenedFile(Mutex<Option<String>>);
 struct FileWatcher(Mutex<Option<notify::RecommendedWatcher>>);
 
@@ -55,6 +66,9 @@ fn unwatch_file(watcher_state: State<FileWatcher>) {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    #[cfg(windows)]
+    register_shell_new();
+
     let args: Vec<String> = std::env::args().collect();
     let opened_file = if args.len() > 1 {
         Some(args[1].clone())
